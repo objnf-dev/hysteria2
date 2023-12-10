@@ -1,14 +1,73 @@
 #!/bin/bash
-# 文字颜色
+
+# 检测当前用户是否为 root 用户
+if [ "$EUID" -ne 0 ]; then
+  echo "请使用 root 用户执行此脚本！"
+  exit 1
+fi
+
+# 安装一些缺少的组件
+commands=("wget" "sed" "openssl" "net-tools" "psmisc" "procps" )
+package_manager=""
+install_command=""
+
+# 检测包管理器
+if [ -x "$(command -v apt)" ]; then
+  package_manager="apt"
+  install_command="sudo apt install -y"
+elif [ -x "$(command -v yum)" ]; then
+  package_manager="yum"
+  install_command="sudo yum install -y"
+elif [ -x "$(command -v dnf)" ]; then
+  package_manager="dnf"
+  install_command="sudo dnf install -y"
+else
+  echo "不支持的包管理器。"
+  exit 1
+fi
+
+# Function to install missing commands
+for cmd in "${commands[@]}"; do
+  if ! command -v "$cmd" &>/dev/null; then
+    echo "Installing $cmd..."
+    $install_command "$cmd"
+    if [ $? -eq 0 ]; then
+      echo "$cmd 安装成功。"
+    else
+      echo "$cmd 安装错误。"
+    fi
+  else
+    echo "$cmd 已被安装。"
+  fi
+done
+
+arch_os=$(uname -m)
+arch=""
+if [ "$arch_os" = "x86_64" ]; then
+  arch="amd64"
+elif [ "$arch_os" = "i386" ] || [ "$arch_os" = "i686" ]; then
+  arch="386"
+elif [ "$arch_os" = "aarch64" ]; then
+  arch="arm64"
+else
+  echo "不支持的系统架构。"
+  exit 1
+fi
+
 random_color() {
   colors=("31" "32" "33" "34" "35" "36" "37")
   echo -e "\e[${colors[$((RANDOM % 7))]}m$1\e[0m"
 }
 
-#这个y也是给用户看动画的
-welcome() {
-  clear
+pid=$(pgrep -f "hysteria-linux-$arch")
 
+if [ -n "$pid" ]; then
+  hy2zt="已运行"
+else
+  hy2zt="未运行"
+fi
+
+clear
 echo -e "$(random_color '
 ░██  ░██                                                              
 ░██  ░██       ░████        ░█         ░█        ░█░█░█  
@@ -17,11 +76,7 @@ echo -e "$(random_color '
 ░██  ░██     ░█             ░█ ░█      ░█  ░█     ░█░█░█ 
 ░██  ░██      ░██  █         ░█         ░█                   ')"
  echo -e "$(random_color '
-人生有两出悲剧：一是万念俱灰，另一是踌躇满志 ')"
- 
-}
-#这个welcome就是启动上面的对话😇
-welcome
+Hysteria2 一键安装脚本 ')"
  
 # Prompt user to select an action
 #这些就行提示你输入的😇
@@ -33,7 +88,8 @@ echo "3. 查看配置"
 echo "4. 退出"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "5. 在线更新hy2内核(目前版本2.2.2)"
-echo "$(random_color 'ObjectNotFound Modified Version, 23.12.09')"
+echo "$(random_color 'ObjectNotFound Modified Version, 23.12.11')"
+echo "hysteria2状态: $hy2zt"
 
 read -p "输入操作编号 (1/2/3/4/5): " choice
 
@@ -54,7 +110,7 @@ else
   echo "Hysteria 服务器服务文件不存在。"
 fi
 
-process_name="hysteria-linux-arm64"
+process_name="hysteria-linux-$arch"
 pid=$(pgrep -f "$process_name")
 
 if [ -n "$pid" ]; then
@@ -65,8 +121,8 @@ else
   echo "未找到 $process_name 进程。"
 fi
 
-if [ -f "/root/hy3/hysteria-linux-arm64" ]; then
-  rm -f "/root/hy3/hysteria-linux-arm64"
+if [ -f "/root/hy3/hysteria-linux-$arch" ]; then
+  rm -f "/root/hy3/hysteria-linux-$arch"
   echo "Hysteria 服务器二进制文件已删除。"
 else
   echo "Hysteria 服务器二进制文件不存在。"
@@ -98,24 +154,8 @@ echo "$(random_color '下面是你的Nekobox节点信息')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')" 
 cd /root/hy3/
 
-config_file="/root/hy3/config.yaml"
+cat /root/hy3/neko.txt
 
-if [ -f "$config_file" ]; then
-    # Extracting information using awk with the updated structure
-    password=$(awk '/password:/ {print $2}' "$config_file")
-    domains=$(awk '/domains:/ {flag=1; next} flag && /^ *-/{print $2; flag=0}' "$config_file")
-    port=$(awk '/listen:/ {gsub(/[^0-9]/, "", $2); print $2}' "$config_file")
-
-    if [ -n "$password" ] && [ -n "$domains" ] && [ -n "$port" ]; then
-        # Adjusting the output format with the new structure
-        output="hy2://$password@$domains:$port/?sni=$domains#Hysteria2"
-        echo "$output"
-    else
-        echo "配置文件中缺少必要的信息。"
-    fi
-else
-    echo "配置文件不存在。"
-fi
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "$(random_color '下面是你的Clash.Meta配置')"
 cat /root/hy3/clash-meta.yaml
@@ -123,8 +163,6 @@ echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
     exit
     ;;
    5)
-   
-process_name="hysteria-linux-arm64"
 
 pid=$(pgrep -f "$process_name")
 
@@ -137,16 +175,12 @@ else
 fi   
 
 cd /root/hy3
+rm -r hysteria-linux-$arch
+wget -O hysteria-linux-$arch https://github.com/apernet/hysteria/releases/download/app/v2.2.2/hysteria-linux-$arch
+chmod +x hysteria-linux-$arch
+nohup ./hysteria-linux-$arch server &
 
-rm -r hysteria-linux-arm64
-
-wget -O hysteria-linux-arm64 https://github.com/apernet/hysteria/releases/download/app/v2.2.2/hysteria-linux-arm64
-
-chmod +x hysteria-linux-arm64
-
-nohup ./hysteria-linux-arm64 server &
-
-echo "更新完成(ง ื▿ ื)ว."
+echo "更新完成,不是哥们,你有什么实力,你直接给我坐下(ง ื▿ ื)ว."
     exit
     ;;
    *)
@@ -160,9 +194,9 @@ cd /root
 mkdir -p ~/hy3
 cd ~/hy3
 
-# Download the Hysteria binary and grant highest permissions
-if wget -O hysteria-linux-arm64 https://github.com/apernet/hysteria/releases/download/app/v2.2.2/hysteria-linux-arm64; then
-  chmod +x hysteria-linux-arm64
+
+if wget -O hysteria-linux-$arch https://github.com/apernet/hysteria/releases/download/app/v2.2.2/hysteria-linux-$arch; then
+  chmod +x hysteria-linux-$arch
 else
   echo "$(random_color '下载 Hysteria 二进制文件失败，退出脚本。')"
   exit 1
@@ -234,8 +268,7 @@ while true; do
     else 
       echo "$(random_color '替换端口号失败，退出脚本。')" 
       exit 1 
-    fi 
-  
+    fi
    
     echo "$(random_color '是否要开启端口跳跃功能？Android平台请使用最新版Nekobox以使用该功能（回车默认不开启，输入1开启）: ')" 
     read -p "" port_jump 
@@ -292,7 +325,7 @@ fi
 echo "$(random_color '请选择内核加速类型：')"
 echo "$(random_color '1. 默认系统内核加速')"
 echo "$(random_color '2. Brutal加速')"
-read -p "$(random_color '请输入选项（1/2，推荐系统内核加速，Brutal有点激进）: ')" kernel_choice
+read -p "$(random_color '请输入选项（1/2，推荐系统内核加速）: ')" kernel_choice
 
 if [ -z "$kernel_choice" ]; then
   kernel_choice=2
@@ -334,7 +367,6 @@ if [ "$cert_choice" == "2" ]; then
     echo -e "证书文件已保存到 /etc/ssl/private/$domain_name.crt"
     echo -e "私钥文件已保存到 /etc/ssl/private/$domain_name.key"
 
-
     temp_file=$(mktemp)
     echo -e "temp_file: $temp_file"
     sed '3i\tls:\n  cert: '"/etc/ssl/private/$domain_name.crt"'\n  key: '"/etc/ssl/private/$domain_name.key"'' /root/hy3/config.yaml > "$temp_file"
@@ -342,6 +374,7 @@ if [ "$cert_choice" == "2" ]; then
     touch /root/hy3/ca
     ip4=$(hostname -I | awk '{print $1}')
     ovokk="insecure=1&"
+    choice1="true"
     echo -e "已将证书和密钥信息写入 /root/hy3/config.yaml 文件。"
 fi
 
@@ -365,14 +398,13 @@ else
     email="${random_part}@gmail.com"
   fi
 
-
   yaml_content="\nacme:\n  domains:\n    - $domain\n  email: $email"
-
 
   if [ -f "config.yaml" ]; then
     echo -e "\nAppending to config.yaml..."
     echo -e $yaml_content >> config.yaml
     echo "$(random_color '域名和邮箱已添加到 config.yaml 文件。')"
+    choice2="false"
   else
     echo "$(random_color 'config.yaml 文件不存在，无法添加。')"
     exit 1
@@ -411,12 +443,16 @@ fi
 fuser -k -n tcp $port
 fuser -k -n udp $port
 
-if sudo setcap cap_net_bind_service=+ep hysteria-linux-arm64; then
+if sudo setcap cap_net_bind_service=+ep hysteria-linux-$arch; then
   echo "$(random_color '授予权限成功。')"
 else
   echo "$(random_color '授予权限失败，退出脚本。')"
   exit 1
 fi
+
+#优化一些系统参数
+sysctl -w net.core.rmem_max=16777216
+sysctl -w net.core.wmem_max=16777216
 
 cat <<EOL > clash-meta.yaml
 system-port: 7890
@@ -445,11 +481,11 @@ dns:
 proxies:
   - name: Hysteria2
     type: hysteria2
-    server: $domain
+    server: $domain$ip4
     port: $port
     password: $password
-    sni: $domain
-    skip-cert-verify: false
+    sni: $domain$domain_name
+    skip-cert-verify: $choice1$choice2
 proxy-groups:
   - name: auto
     type: select
@@ -462,7 +498,7 @@ echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "clash-meta.yaml 已保存到当前文件夹"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 # Running the Hysteria server in the background
-if nohup ./hysteria-linux-arm64 server & then
+if nohup ./hysteria-linux-$arch server & then
   echo "$(random_color 'Hysteria 服务器已启动。')"
 else
   echo "$(random_color '启动 Hysteria 服务器失败，退出脚本。')"
@@ -470,12 +506,12 @@ else
 fi
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 hysteria_directory="/root/hy3/"
-hysteria_executable="/root/hy3/hysteria-linux-arm64"
+hysteria_executable="/root/hy3/hysteria-linux-$arch"
 hysteria_service_file="/etc/systemd/system/hysteria.service"
 
-create_and_configure_service() {
-  if [ -e "$hysteria_directory" ] && [ -e "$hysteria_executable" ]; then
-    cat > "$hysteria_service_file" <<EOF
+# create_and_configure_service
+if [ -e "$hysteria_directory" ] && [ -e "$hysteria_executable" ]; then
+  cat > "$hysteria_service_file" <<EOF
 [Unit]
 Description=My Hysteria Server
 
@@ -488,38 +524,35 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
-    echo "Hysteria服务器服务文件已创建和配置."
-  else
-    echo "Hysteria目录或可执行文件不存在，请检查路径."
-    exit 1
-  fi
-}
+  echo "Hysteria服务器服务文件已创建和配置。"
+else
+  echo "Hysteria目录或可执行文件不存在，请检查路径。"
+  exit 1
+fi
 
 
-enable_and_start_service() {
-  if [ -f "$hysteria_service_file" ]; then
-    systemctl enable hysteria.service
-    systemctl start hysteria.service
-    echo "Hysteria服务器服务已启用自启动并成功启动."
-  else
-    echo "Hysteria服务文件不存在，请先创建并配置服务文件."
-    exit 1
-  fi
-}
+# enable_and_start_service
+if [ -f "$hysteria_service_file" ]; then
+  systemctl enable hysteria.service
+  systemctl start hysteria.service
+  echo "Hysteria服务器服务已启用自启动并成功启动。"
+else
+  echo "Hysteria服务文件不存在，请先创建并配置服务文件。"
+  exit 1
+fi
 
-
-create_and_configure_service
-enable_and_start_service
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "完成。"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 
 if [ -n "$start_port" ] && [ -n "$end_port" ]; then
-  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存（Android平台的Nekobox最新版本可使用端口跳跃功能）: ')\nhy2://$password@$ip4$domain:$port/?mport=$port%2C$start_port-$end_port&${ovokk}sni=$domain$domain_name#Hysteria2"
+  echo -e "$(random_color '这是你的Hysteria2节点链接信息 (使用Nekobox最新版才能兼容端口跳跃,电脑端自行修改端口跳跃): ')\nhy2://$password@$ip4$domain:$port/?mport=$port%2C$start_port-$end_port&${ovokk}sni=$domain$domain_name#Hysteria2"
+  echo "hy2://$password@$ip4$domain:$port/?mport=$port%2C$start_port-$end_port&${ovokk}sni=$domain$domain_name#Hysteria2" > neko.txt
 else
-  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存: ')\nhy2://$password@$ip4$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2"
-fi
 
+  echo -e "$(random_color '这是你的Hysteria2节点链接信息: ')\nhy2://$password@$ip4$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2"
+  echo "hy2://$password@$ip4$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2" > neko.txt
+fi
 
 echo -e "$(random_color '
 
