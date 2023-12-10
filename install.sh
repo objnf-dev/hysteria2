@@ -23,8 +23,11 @@ if [ -x "$(command -v apt)" ]; then
 elif [ -x "$(command -v yum)" ]; then
   package_manager="yum"
   install_command="sudo yum install -y"
+elif [ -x "$(command -v dnf)" ]; then
+  package_manager="yum"
+  install_command="sudo dnf install -y"
 else
-  echo "Unsupported package manager."
+  echo "不支持的包管理器。"
   exit 1
 fi
 
@@ -35,12 +38,12 @@ install_missing_commands() {
       echo "Installing $cmd..."
       $install_command "$cmd"
       if [ $? -eq 0 ]; then
-        echo "$cmd installed successfully."
+        echo "$cmd 安装成功。"
       else
-        echo "Failed to install $cmd."
+        echo "$cmd 安装失败。"
       fi
     else
-      echo "$cmd is already installed."
+      echo "$cmd 已被安装。"
     fi
   done
 }
@@ -79,10 +82,10 @@ fi
 
 # Execute the downloaded script with elevated privileges
 if bash hy2.sh; then
-  echo "而你，我的朋友，你是恋爱脑里的常青树，Joker里的顶梁柱，麦当劳的吉祥物，哥谭市的大头目，扑克牌的最大数，蝙蝠侠的大客户……"
+  echo "开始执行安装脚本。"
   echo "
 
-家人们,由于我是傻鸟,脚本有问题请尽快提出来,很可能因为我的粗心导致脚本不能使用,这是经常发生的,请大家谅解,谢谢"
+执行错误。请重试，或至GitHub issue中反映问题。"
 else
   echo "脚本执行失败。"
   exit 1

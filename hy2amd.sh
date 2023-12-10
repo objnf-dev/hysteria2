@@ -1,19 +1,8 @@
 #!/bin/bash
-#中国共产党万岁，中华人民共和国万岁，为人民崛起而读书
-# 下面这串是关于文字颜色的，可以自己改数字😇
-#好的脚本，就是要有好的注释和简介的代码💩
+# 文字颜色
 random_color() {
   colors=("31" "32" "33" "34" "35" "36" "37")
   echo -e "\e[${colors[$((RANDOM % 7))]}m$1\e[0m"
-}
-#这个没啥用，就是让用户白等5s看动画的💩
-line_animation() {
-  lines=0
-  while [ $lines -lt 8 ]; do
-    echo -e "$(random_color '********************************************************************************')"
-    sleep 0.375  # Sleep for 0.375 seconds each time (3 seconds total time / 8 lines)
-    lines=$((lines + 1))
-  done
 }
 
 pid=$(pgrep -f "hysteria-linux-amd64")
@@ -44,16 +33,15 @@ welcome
  
 # Prompt user to select an action
 #这些就行提示你输入的😇
-echo "$(random_color '选择一个操作，小崽子(ง ื▿ ื)ว：')"
-echo "1. 安装(以梦为马)"
-echo "2. 卸载(以心为疆)"
+echo "$(random_color '选择一个操作'"
+echo "1. 安装"
+echo "2. 卸载"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "3. 查看配置(穿越时空)"
-echo "4. 退出脚本(回到未来)"
+echo "3. 查看配置"
+echo "4. 退出"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "5. 在线更新hy2内核(目前版本2.2.2)"
-echo "$(random_color 'hy2究极版本v23.12.03')"
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
+echo "$(random_color 'ObjectNotFound Modified Version, 23.12.09')"
 echo "hysteria2状态: $hy2zt"
 
 read -p "输入操作编号 (1/2/3/4/5): " choice
@@ -66,7 +54,6 @@ case $choice in
    2)
 
 sudo systemctl stop hysteria.service
-
 sudo systemctl disable hysteria.service
 
 if [ -f "/etc/systemd/system/hysteria.service" ]; then
@@ -105,7 +92,7 @@ systemctl stop ipppp.service
 systemctl disable ipppp.service
 rm /etc/systemd/system/ipppp.service
 iptables -F
-echo "卸载完成(ง ื▿ ื)ว."
+echo "卸载完成。"
 
 # 退出脚本
 exit
@@ -116,9 +103,8 @@ exit
      exit
      ;;
    3)
-echo "$(random_color '下面是你的nekobox节点信息')" 
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"   
+echo "$(random_color '下面是你的Nekobox节点信息')" 
+echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')" 
 cd /root/hy3/
 
 config_file="/root/hy3/config.yaml"
@@ -134,15 +120,14 @@ if [ -f "$config_file" ]; then
         output="hy2://$password@$domains:$port/?sni=$domains#Hysteria2"
         echo "$output"
     else
-        echo "Error: Failed to extract required information from the configuration file."
+        echo "配置文件中缺少必要的信息。"
     fi
 else
-    echo "Error: Configuration file not found."
+    echo "配置文件不存在。"
 fi
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "$(random_color '下面是你的clashmate配置')"
-cat /root/hy3/clash-mate.yaml
+echo "$(random_color '下面是你的Clash.Meta配置')"
+cat /root/hy3/clash-meta.yaml
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
     exit
     ;;
@@ -179,10 +164,6 @@ echo "更新完成(ง ื▿ ื)ว."
      ;;
 esac
 
-# The following is the default installation operation, you can add installation code here
-
-line_animation
-
 # Create hy3 folder and enter
 cd /root
 mkdir -p ~/hy3
@@ -210,32 +191,31 @@ auth:
 masquerade:
   type: proxy
   file:
-    dir: /www/masq 
+    dir: /www/html
   proxy:
     url: https://news.ycombinator.com/
     rewriteHost: true 
   string:
-    content: hello stupid world 
+    content: "<!DOCTYPE html>"
     headers: 
-      content-type: text/plain
-      custom-stuff: ice cream so good
+      content-type: "text/html; charset=utf-8"
+      cache-control: "max-age=0"
     statusCode: 200 
 
 bandwidth:
-  up: 99 gbps
-  down: 99 gbps
-
-udpIdleTimeout: 90s
+  up: 0
+  down: 0
+udpIdleTimeout: 60s
 
 ignoreClientBandwidth: false
 
 quic:
-  initStreamReceiveWindow: 8888888 
-  maxStreamReceiveWindow: 8888888 
+  initStreamReceiveWindow: 8388608 
+  maxStreamReceiveWindow: 8388608 
   initConnReceiveWindow: 20971520 
   maxConnReceiveWindow: 20971520 
-  maxIdleTimeout: 90s 
-  maxIncomingStreams: 1800 
+  maxIdleTimeout: 30s 
+  maxIncomingStreams: 1024
   disablePathMTUDiscovery: false 
 EOL
 
@@ -249,7 +229,7 @@ while true; do
     elif [ "$port" -eq 0 ]; then 
       port=$((RANDOM % 58001 + 2000)) 
     elif ! [[ "$port" =~ ^[0-9]+$ ]]; then 
-      echo "$(random_color '我的朋友，请输入数字好吧，请重新输入端口号：')" 
+      echo "$(random_color '请输入【数字】端口号：')" 
       continue 
     fi 
   
@@ -266,7 +246,7 @@ while true; do
     fi 
   
    
-    echo "$(random_color '是否要开启端口跳跃功能？如果你不知道是干啥的，就不用开启(ง ื▿ ื)ว，请使用最新版nekobox（回车默认不开启，输入1开启）: ')" 
+    echo "$(random_color '是否要开启端口跳跃功能？Android平台请使用最新版Nekobox以使用该功能（回车默认不开启，输入1开启）: ')" 
     read -p "" port_jump 
   
     if [ -z "$port_jump" ]; then 
@@ -298,7 +278,6 @@ if [ -n "$port_jump" ] && [ "$port_jump" -eq 1 ]; then
   echo "#!/bin/bash" > /root/hy3/ipppp.sh 
   echo "iptables -t nat -A PREROUTING -i eth0 -p udp --dport $start_port:$end_port -j DNAT --to-destination :$port" >> /root/hy3/ipppp.sh 
   
- 
   chmod +x /root/hy3/ipppp.sh 
   
   echo "[Unit]" > /etc/systemd/system/ipppp.service 
@@ -316,13 +295,13 @@ if [ -n "$port_jump" ] && [ "$port_jump" -eq 1 ]; then
   # 启动服务 
   systemctl start ipppp.service 
   
-  echo "$(random_color '已创建/ipppp.sh脚本文件并设置开机自启动。')"
+  echo "$(random_color '已创建ipppp.sh脚本文件并设置开机自启动。')"
 fi
 
 echo "$(random_color '请选择内核加速类型：')"
 echo "$(random_color '1. 默认系统内核加速')"
 echo "$(random_color '2. Brutal加速')"
-read -p "$(random_color '请输入选项（1/2，推荐系统内核加速,brutal有点激进）: ')" kernel_choice
+read -p "$(random_color '请输入选项（1/2，推荐系统内核加速，Brutal有点激进）: ')" kernel_choice
 
 if [ -z "$kernel_choice" ]; then
   kernel_choice=2
@@ -383,27 +362,21 @@ else
   echo "$(random_color '请输入你的域名（必须是解析好的域名哦）: ')"
   read -p "" domain
 
-  
   while [ -z "$domain" ]; do
     echo "$(random_color '域名不能为空，请重新输入: ')"
     read -p "" domain
   done
 
-
   echo "$(random_color '请输入你的邮箱（默认随机邮箱）: ')"
   read -p "" email
 
-
   if [ -z "$email" ]; then
-
     random_part=$(head /dev/urandom | LC_ALL=C tr -dc A-Za-z0-9 | head -c 4 ; echo '')
-
-
     email="${random_part}@gmail.com"
   fi
 
 
-  yaml_content="acme:\n  domains:\n    - $domain\n  email: $email"
+  yaml_content="\nacme:\n  domains:\n    - $domain\n  email: $email"
 
 
   if [ -f "config.yaml" ]; then
@@ -421,11 +394,9 @@ fi
 echo "$(random_color '请输入你的密码（留空将生成随机密码，不超过20个字符）: ')"
 read -p "" password
 
-
 if [ -z "$password" ]; then
   password=$(openssl rand -base64 20 | tr -dc 'a-zA-Z0-9')
 fi
-
 
 if sed -i "s/Se7RAuFZ8Lzg/$password/" config.yaml; then
   echo "$(random_color '密码已设置为：')" $password
@@ -458,7 +429,7 @@ else
   exit 1
 fi
 
-cat <<EOL > clash-mate.yaml
+cat <<EOL > clash-meta.yaml
 system-port: 7890
 external-controller: 127.0.0.1:9090
 allow-lan: false
@@ -499,9 +470,7 @@ rules:
   - MATCH,auto
 EOL
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "clash-mate.yaml 已保存到当前文件夹"
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
+echo "clash-meta.yaml 已保存到当前文件夹"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 # Running the Hysteria server in the background
 if nohup ./hysteria-linux-amd64 server & then
@@ -510,7 +479,6 @@ else
   echo "$(random_color '启动 Hysteria 服务器失败，退出脚本。')"
   exit 1
 fi
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 hysteria_directory="/root/hy3/"
 hysteria_executable="/root/hy3/hysteria-linux-amd64"
@@ -556,20 +524,13 @@ enable_and_start_service
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 echo "完成。"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-line_animation
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
-echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
 
 if [ -n "$start_port" ] && [ -n "$end_port" ]; then
-
-  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存哦joker(请使用nekobox最新版才能兼容端口跳跃,电脑端自行修改端口跳跃,比如443,1000-10000): ')\nhy2://$password@$ip4$domain:$port/?mport=$port%2C$start_port-$end_port&${ovokk}sni=$domain$domain_name#Hysteria2"
-  
+  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存（Android平台的Nekobox最新版本可使用端口跳跃功能）: ')\nhy2://$password@$ip4$domain:$port/?mport=$port%2C$start_port-$end_port&${ovokk}sni=$domain$domain_name#Hysteria2"
 else
-
-  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存哦小崽子: ')\nhy2://$password@$ip4$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2"
+  echo -e "$(random_color '这是你的Hysteria2节点链接信息，请注意保存: ')\nhy2://$password@$ip4$domain:$port/?${ovokk}sni=$domain$domain_name#Hysteria2"
 fi
-
 
 echo -e "$(random_color '
 
-Hysteria2安装成功，请合理使用哦,你直接给我坐下')"
+Hysteria2安装成功，请合理使用哦')"
