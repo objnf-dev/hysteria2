@@ -80,7 +80,7 @@ Hysteria2 一键安装脚本 ')"
  
 # Prompt user to select an action
 #这些就行提示你输入的😇
-echo "$(random_color '选择一个操作'"
+echo "$(random_color '选择一个操作')"
 echo "1. 安装"
 echo "2. 卸载"
 echo "$(random_color '>>>>>>>>>>>>>>>>>>>>')"
